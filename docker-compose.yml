@@ -1,0 +1,70 @@
+
+services:
+  agentic_research_db:
+    container_name: agentic_research_db-service
+    build:
+      context: ./
+      dockerfile: Dockerfile.db.dev
+    image: agentic_research_db_w_vector_support
+    restart: always
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_USER=agentic_research_dev_user
+      - POSTGRES_PASSWORD=Fd0kjmjYjzAUXx3C
+      - POSTGRES_DB=agentic_research_development
+    ports:
+      - 5600:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    volumes: 
+      - agentic_research_db:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+  agentic_research_cache:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - 6500:6379
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - agentic_research_cache:/data
+  agentic_research_api:
+    container_name: agentic_research_app-service
+    build:
+      context: ./
+      dockerfile: Dockerfile.dev
+    image: agentic_research_app
+    depends_on:
+      agentic_research_db:
+        condition: service_healthy
+      agentic_research_cache:
+        condition: service_started
+    ports:
+      - 8200:8200
+    environment:
+      NODE_ENV: development
+      COMPOSE: true
+      PORT: 8200
+      DATABASE_HOST: agentic_research_db
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: agentic_research_dev_user
+      DATABASE_PASSWORD: Fd0kjmjYjzAUXx3C
+      DATABASE_DATABASE: agentic_research_development
+      REDIS_HOST: agentic_research_cache
+      REDIS_PORT: 6379
+      REMIX_DEV_TOOLS: false
+    command: npm run start:dev
+    links:
+      - agentic_research_db
+      - agentic_research_cache
+    volumes:
+      - type: bind
+        source: ./src
+        target: /usr/src/app/src
+volumes:
+  agentic_research_db:
+    driver: local
+  agentic_research_cache:
+    driver: local

@@ -1,0 +1,17 @@
+FROM postgres:16-alpine3.19
+
+# Install build tools for pgvector
+RUN apk add --no-cache \
+    git \
+    g++ \
+    make \
+    musl-dev \
+    postgresql-dev
+
+# Install pgvector (same version you used before)
+RUN git clone --branch v0.6.2 https://github.com/pgvector/pgvector.git \
+    && cd pgvector \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf pgvector

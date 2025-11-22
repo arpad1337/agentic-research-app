@@ -1,0 +1,4 @@
+
+> agentic-research-app@1.0.0 start
+> node build/api/index.js
+
