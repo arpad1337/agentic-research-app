@@ -1,0 +1,13 @@
+
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "commonjs",
+    "target": "es2019",
+    "esModuleInterop": true,
+    "paths": {
+      "~/*": ["./src/app/*"],
+      "@/*": ["./src/app/*"],
+    },
+  }
+}
